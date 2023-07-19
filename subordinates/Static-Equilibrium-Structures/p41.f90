@@ -42,22 +42,22 @@ SUBROUTINE p41(input_file,output_file)
     ALLOCATE(kdiag(neq),loads(0:neq))
     kdiag=0
     !-----------------------loop the elements to find global arrays sizes-----
-    elements_1: DO iel=1,nels
-    num=(/iel,iel+1/)
-    CALL num_to_g(num,nf,g)
-    g_g(:,iel)=g
+    elements_1: DO iel=1,nels ! 遍历所有单元
+    num=(/iel,iel+1/) ! 单元节点编号数组
+    CALL num_to_g(num,nf,g) ! 获取单元上的自由度编号数组
+    g_g(:,iel)=g ! 将自由度编号数组组装成二维数组，每一列代表一个单元，下标指示单元号
     CALL fkdiag(kdiag,g)
     END DO elements_1
     DO i=2,neq
-    kdiag(i)=kdiag(i)+kdiag(i-1)
+    kdiag(i)=kdiag(i)+kdiag(i-1) ! 对kdiag进行逐元素累加
     END DO
-    ALLOCATE(kv(kdiag(neq)))
+    ALLOCATE(kv(kdiag(neq))) ! 分配kv内存, 一维数组, 其长度是kdiag的累加和
     WRITE(11,'(2(A,I5))')                                                    &
     " There are",neq," equations and the skyline storage is",kdiag(neq)
     !-----------------------global stiffness matrix assembly------------------
     kv=zero
     elements_2: DO iel=1,nels
-    CALL rod_km(km,prop(1,etype(iel)),ell(iel))
+    CALL rod_km(km,prop(1,etype(iel)),ell(iel)) ! km是单刚
     g=g_g(:,iel)
     CALL fsparv(kv,km,g,kdiag)
     END DO elements_2
